@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="생태복원·조경·도시계획 분야를 준비하는 한승연의 커리어 포트폴리오" />
+  <title>한승연 — Career Portfolio 2026</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --paper: #f5f4f0;
+      --signal: #ff3d20;
+      --line: rgba(17, 17, 17, .22);
+      --pad: clamp(1.25rem, 4vw, 4.5rem);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem var(--pad);
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 244, 240, .88);
+      backdrop-filter: blur(12px);
+    }
+    .brand { font-size: .78rem; font-weight: 800; letter-spacing: .09em; }
+    .nav-links { display: flex; gap: clamp(1rem, 3vw, 2.6rem); font-size: .76rem; font-weight: 700; }
+    .nav a { position: relative; }
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 100%; bottom: -.25rem;
+      height: 1px; background: var(--ink);
+      transition: right .25s ease;
+    }
+    .nav a:hover::after, .nav a:focus-visible::after { right: 0; }
+
+    .hero {
+      min-height: 100svh;
+      padding: 7.4rem var(--pad) 2rem;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .hero-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      font-size: .72rem;
+      color: #4f4f4f;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .hero-meta span:nth-child(2) { text-align: center; }
+    .hero-meta span:last-child { text-align: right; }
+    .hero-title {
+      align-self: center;
+      margin: 0;
+      font-size: clamp(4.3rem, 15.8vw, 14rem);
+      font-weight: 500;
+      letter-spacing: -.085em;
+      line-height: .78;
+      text-transform: lowercase;
+      white-space: nowrap;
+      transform: translateX(-.025em);
+    }
+    .hero-title .accent { color: var(--signal); }
+    .hero-foot {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 1rem;
+    }
+    .hero-foot p { margin: 0; max-width: 35rem; font-size: clamp(1rem, 1.65vw, 1.38rem); font-weight: 700; }
+    .hero-foot .rule { width: 1px; height: 7rem; background: var(--ink); }
+    .hero-foot .year { justify-self: end; text-align: right; font-size: .72rem; line-height: 1.45; }
+
+    .marquee { overflow: hidden; border-bottom: 1px solid var(--line); background: var(--ink); color: var(--paper); }
+    .marquee-track {
+      width: max-content;
+      padding: .7rem 0;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      animation: move 22s linear infinite;
+    }
+    @keyframes move { to { transform: translateX(-50%); } }
+
+    .section { padding: clamp(5rem, 10vw, 9rem) var(--pad); border-bottom: 1px solid var(--line); }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(8rem, .45fr) 1.55fr;
+      gap: 2rem;
+      margin-bottom: clamp(3rem, 7vw, 6rem);
+    }
+    .eyebrow { margin: .45rem 0 0; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .section h2 {
+      margin: 0;
+      max-width: 18ch;
+      font-size: clamp(2.3rem, 5.5vw, 5.8rem);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+      font-weight: 650;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
+    .profile-item { min-height: 15rem; padding: 1.5rem 1.3rem 2rem; border-right: 1px solid var(--line); }
+    .profile-item:last-child { border-right: 0; }
+    .profile-item .num { display: block; margin-bottom: 4.5rem; color: var(--signal); font-size: .76rem; font-weight: 800; }
+    .profile-item h3 { margin: 0 0 1rem; font-size: 1.2rem; }
+    .profile-item p { margin: 0; color: #555; font-size: .96rem; }
+
+    .projects { display: grid; gap: 1px; background: var(--ink); border: 1px solid var(--ink); }
+    .project {
+      min-height: clamp(24rem, 46vw, 40rem);
+      display: grid;
+      grid-template-columns: .92fr 1.08fr;
+      background: var(--paper);
+    }
+    .project-copy { padding: clamp(1.5rem, 4vw, 4rem); display: flex; flex-direction: column; justify-content: space-between; }
+    .project-index { font-size: .76rem; font-weight: 800; letter-spacing: .08em; }
+    .project-copy h3 { margin: auto 0 1.3rem; max-width: 13ch; font-size: clamp(2rem, 4.2vw, 4.7rem); line-height: 1; letter-spacing: -.05em; }
+    .project-copy p { margin: 0; max-width: 31rem; color: #555; }
+    .tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 2rem; }
+    .tag { padding: .3rem .6rem; border: 1px solid var(--line); border-radius: 99px; font-size: .7rem; }
+    .project-visual {
+      position: relative;
+      min-height: 24rem;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      border-left: 1px solid var(--ink);
+    }
+    .project-visual span { position: relative; z-index: 2; font-weight: 800; letter-spacing: -.06em; line-height: .84; }
+    .v1 { background: #f13b22; color: #111; }
+    .v1 span { font-size: clamp(4rem, 11vw, 11rem); writing-mode: vertical-rl; transform: rotate(180deg); }
+    .v2 { background: #111; color: #f5f4f0; }
+    .v2 span { font-size: clamp(3rem, 8vw, 8rem); text-align: center; }
+    .v3 { background: #d7ff38; color: #111; }
+    .v3 span { font-size: clamp(4rem, 9vw, 9rem); }
+    .v4 { background: #d9d6cf; color: #111; }
+    .v4 span { font-size: clamp(3.2rem, 7vw, 7rem); text-align: center; }
+    .stamp {
+      position: absolute;
+      top: 2rem; right: 2rem;
+      width: 5.5rem; aspect-ratio: 1;
+      display: grid; place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font-size: .62rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .capability-list { border-top: 1px solid var(--ink); }
+    .capability {
+      display: grid;
+      grid-template-columns: 5rem 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.4rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .capability b { font-size: clamp(1.2rem, 2.4vw, 2.1rem); letter-spacing: -.035em; }
+    .capability small { color: #666; font-size: .74rem; }
+    .capability .mark { color: var(--signal); font-size: 1.3rem; }
+
+    .contact {
+      min-height: 80svh;
+      padding: clamp(5rem, 10vw, 9rem) var(--pad) 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--signal);
+      color: var(--ink);
+    }
+    .contact p { margin: 0; max-width: 42rem; font-size: clamp(1.1rem, 2vw, 1.6rem); font-weight: 650; }
+    .contact h2 { margin: 2rem 0; font-size: clamp(5rem, 18vw, 16rem); line-height: .78; letter-spacing: -.09em; font-weight: 500; }
+    .contact-bottom { display: flex; justify-content: space-between; gap: 2rem; font-size: .72rem; font-weight: 700; }
+
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.on { opacity: 1; transform: none; }
+    .skip { position: fixed; left: 1rem; top: -4rem; z-index: 99; padding: .7rem 1rem; background: #fff; }
+    .skip:focus { top: 1rem; }
+
+    @media (max-width: 760px) {
+      .nav-links a:first-child { display: none; }
+      .hero { min-height: 92svh; padding-top: 6rem; }
+      .hero-meta { grid-template-columns: 1fr 1fr; }
+      .hero-meta span:nth-child(2) { text-align: right; }
+      .hero-meta span:last-child { display: none; }
+      .hero-title { font-size: clamp(4rem, 22vw, 8rem); white-space: normal; line-height: .82; }
+      .hero-foot { grid-template-columns: 1fr auto; }
+      .hero-foot .rule { display: none; }
+      .section-head { grid-template-columns: 1fr; gap: 1.2rem; }
+      .profile-grid { grid-template-columns: 1fr; }
+      .profile-item { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .profile-item:last-child { border-bottom: 0; }
+      .profile-item .num { margin-bottom: 2.2rem; }
+      .project { grid-template-columns: 1fr; }
+      .project-copy { min-height: 23rem; }
+      .project-visual { border-left: 0; border-top: 1px solid var(--ink); }
+      .capability { grid-template-columns: 3rem 1fr auto; gap: .7rem; }
+      .capability small { display: none; }
+      .contact { min-height: 70svh; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .marquee-track { animation: none; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">본문으로 바로가기</a>
+  <nav class="nav" aria-label="주요 메뉴">
+    <a class="brand" href="#top">HAN SEUNGYEON / PORTFOLIO</a>
+    <div class="nav-links">
+      <a href="#profile">PROFILE</a>
+      <a href="#work">WORK</a>
+      <a href="#skills">SKILLS</a>
+      <a href="#contact">CONTACT</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <header class="hero" id="top">
+      <div class="hero-meta">
+        <span>Landscape & Urban Portfolio</span>
+        <span>Sangmyung University</span>
+        <span>Seoul · Gyeonggi</span>
+      </div>
+      <h1 class="hero-title">portfoli<span class="accent">o</span></h1>
+      <div class="hero-foot">
+        <p>생태와 도시를 이해하고, 조사·계획·시각화를 통해 더 나은 공간을 제안합니다.</p>
+        <span class="rule" aria-hidden="true"></span>
+        <div class="year">2026<br />CAREER<br />PORTFOLIO</div>
+      </div>
+    </header>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">ECOLOGICAL RESTORATION · LANDSCAPE · URBAN PLANNING · RESEARCH · VISUALIZATION · ECOLOGICAL RESTORATION · LANDSCAPE · URBAN PLANNING · RESEARCH · VISUALIZATION · </div>
+    </div>
+
+    <section class="section" id="profile">
+      <div class="section-head reveal">
+        <p class="eyebrow">01 / Profile</p>
+        <h2>생태와 도시를 연결하는 조경 분야의 실무자를 준비합니다.</h2>
+      </div>
+      <div class="profile-grid reveal">
+        <article class="profile-item">
+          <span class="num">01</span>
+          <h3>전공과 진로</h3>
+          <p>상명대학교 천안캠퍼스 그린스마트시티학과에 재학 중이며, 생태복원·조경·도시계획과 지역개발 분야에 관심이 있습니다.</p>
+        </article>
+        <article class="profile-item">
+          <span class="num">02</span>
+          <h3>업무 방향</h3>
+          <p>조경 엔지니어링, 조경 설계사무소, 조경 연구직을 목표로 하며 사무 중심 업무와 현장성이 있는 업무 모두 수행할 수 있습니다.</p>
+        </article>
+        <article class="profile-item">
+          <span class="num">03</span>
+          <h3>활용 도구</h3>
+          <p>AutoCAD, Adobe Illustrator, Adobe Photoshop을 활용합니다. AI 프로그램은 구체적인 도구와 활용 수준을 정리하고 있습니다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <div class="section-head reveal">
+        <p class="eyebrow">02 / Selected Work</p>
+        <h2>수업과 공모전에서 계획부터 결과물까지 완성했습니다.</h2>
+      </div>
+      <div class="projects">
+        <article class="project reveal">
+          <div class="project-copy">
+            <span class="project-index">EXPERIENCE 01 / COURSE WORK</span>
+            <div>
+              <h3>교과 수업 판넬 제작 2회</h3>
+              <p>수업 과제를 통해 자료를 조사하고 식재 계획을 세운 뒤, Illustrator와 Photoshop으로 정보를 시각화해 판넬을 완성했습니다.</p>
+              <div class="tags"><span class="tag">식재 계획</span><span class="tag">자료조사</span><span class="tag">판넬 제작</span></div>
+            </div>
+          </div>
+          <div class="project-visual v1" aria-label="교과 수업 판넬 제작 경험 표지">
+            <span>02</span><i class="stamp">course<br />panel</i>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="project-copy">
+            <span class="project-index">EXPERIENCE 02 / GRAND PRIZE</span>
+            <div>
+              <h3>교내 공모전 대상 수상</h3>
+              <p>식재 계획과 자료조사부터 그래픽 편집, 판넬 전체 구성까지 직접 총괄하며 완성도 높은 결과물을 만들어 대상을 수상했습니다.</p>
+              <div class="tags"><span class="tag">대상 수상</span><span class="tag">전체 작업 총괄</span><span class="tag">그래픽 편집</span></div>
+            </div>
+          </div>
+          <div class="project-visual v2" aria-label="교내 공모전 대상 수상 경험 표지">
+            <span>GRAND<br />PRIZE</span><i class="stamp">campus<br />award</i>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="project-copy">
+            <span class="project-index">EXPERIENCE 03 / COMPETITION</span>
+            <div>
+              <h3>도시숲 공모전 참가</h3>
+              <p>도시 환경과 녹지의 관계를 탐구하며 자료를 조사하고, 공간의 방향과 식재 아이디어를 판넬로 정리하는 공모전 과정을 경험했습니다.</p>
+              <div class="tags"><span class="tag">도시숲</span><span class="tag">공간 계획</span><span class="tag">시각화</span></div>
+            </div>
+          </div>
+          <div class="project-visual v3" aria-label="도시숲 공모전 참가 경험 표지">
+            <span>URBAN<br />FOREST</span><i class="stamp">city<br />and green</i>
+          </div>
+        </article>
+
+        <article class="project reveal">
+          <div class="project-copy">
+            <span class="project-index">EXPERIENCE 04 / TECHNICAL SKILL</span>
+            <div>
+              <h3>AutoCAD 교과 작업</h3>
+              <p>CAD 수업에서 AutoCAD로 직접 도면을 작성하며 조경·도시 분야의 기초적인 디지털 설계 작업 경험을 쌓았습니다.</p>
+              <div class="tags"><span class="tag">AutoCAD</span><span class="tag">도면 작업</span><span class="tag">기초 설계</span></div>
+            </div>
+          </div>
+          <div class="project-visual v4" aria-label="AutoCAD 교과 작업 경험 표지">
+            <span>CAD<br />DRAW</span><i class="stamp">technical<br />drawing</i>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="skills">
+      <div class="section-head reveal">
+        <p class="eyebrow">03 / Capabilities</p>
+        <h2>계획을 세우고, 조사하고, 설득력 있게 시각화합니다.</h2>
+      </div>
+      <div class="capability-list reveal">
+        <div class="capability"><span>01</span><b>식재 계획 기초</b><small>Planting Plan</small><span class="mark">●</span></div>
+        <div class="capability"><span>02</span><b>자료 조사·정보 정리</b><small>Research & Organization</small><span class="mark">●</span></div>
+        <div class="capability"><span>03</span><b>시각화·그래픽 편집</b><small>Illustrator & Photoshop</small><span class="mark">●</span></div>
+        <div class="capability"><span>04</span><b>판넬 구성·작업 조율</b><small>Panel Direction</small><span class="mark">●</span></div>
+        <div class="capability"><span>05</span><b>AutoCAD 기초 작업</b><small>Technical Drawing</small><span class="mark">●</span></div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <p>생태복원·조경·도시계획 분야에서 조사와 설계, 시각화 역량을 꾸준히 확장하고 있습니다.</p>
+      <h2>let's<br />talk.</h2>
+      <div class="contact-bottom"><span>HAN SEUNGYEON / PORTFOLIO</span><span>SEOUL · GYEONGGI</span><span>© 2026</span></div>
+    </section>
+  </main>
+
+  <script>
+    const items = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('on');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      items.forEach((item) => observer.observe(item));
+    } else {
+      items.forEach((item) => item.classList.add('on'));
+    }
+  </script>
+</body>
+</html>
