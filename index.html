@@ -202,6 +202,16 @@
     }
     .contact p { margin: 0; max-width: 42rem; font-size: clamp(1.1rem, 2vw, 1.6rem); font-weight: 650; }
     .contact h2 { margin: 2rem 0; font-size: clamp(5rem, 18vw, 16rem); line-height: .78; letter-spacing: -.09em; font-weight: 500; }
+    .reserve-cta {
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 1.4rem;
+      margin-bottom: 2.5rem; padding: 1.15rem 1.6rem;
+      background: var(--ink); color: var(--paper);
+      border: 1px solid var(--ink);
+      font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 800; letter-spacing: -.02em;
+      transition: background .2s ease, color .2s ease;
+    }
+    .reserve-cta:hover, .reserve-cta:focus-visible { background: var(--paper); color: var(--ink); }
     .contact-bottom { display: flex; justify-content: space-between; gap: 2rem; font-size: .72rem; font-weight: 700; }
 
     .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
@@ -210,7 +220,7 @@
     .skip:focus { top: 1rem; }
 
     @media (max-width: 760px) {
-      .nav-links a:first-child { display: none; }
+      .nav-links a:nth-child(-n+3) { display: none; }
       .hero { min-height: 92svh; padding-top: 6rem; }
       .hero-meta { grid-template-columns: 1fr 1fr; }
       .hero-meta span:nth-child(2) { text-align: right; }
@@ -231,6 +241,10 @@
       .contact { min-height: 70svh; }
     }
 
+    @media (max-width: 560px) {
+      .nav-links a:nth-child(4) { display: none; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .marquee-track { animation: none; }
@@ -248,6 +262,7 @@
       <a href="#skills">SKILLS</a>
       <a href="#contact">CONTACT</a>
       <a href="location.html">VISIT</a>
+      <a href="reservation.html">RESERVE</a>
     </div>
   </nav>
 
@@ -375,6 +390,7 @@
     <section class="contact" id="contact">
       <p>생태복원·조경·도시계획 분야에서 조사와 설계, 시각화 역량을 꾸준히 확장하고 있습니다.</p>
       <h2>let's<br />talk.</h2>
+      <a class="reserve-cta" href="reservation.html">방문 예약하기 <span aria-hidden="true">→</span></a>
       <div class="contact-bottom"><span>HAN SEUNGYEON / PORTFOLIO</span><span>SEOUL · GYEONGGI</span><span><a href="admin.html">ADMIN</a> · © 2026</span></div>
     </section>
   </main>

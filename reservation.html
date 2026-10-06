@@ -55,7 +55,7 @@
       height: 1px; background: var(--ink);
       transition: right .25s ease;
     }
-    .nav a:hover::after, .nav a:focus-visible::after { right: 0; }
+    .nav a:hover::after, .nav a:focus-visible::after, .nav a[aria-current="page"]::after { right: 0; }
 
     main { flex: 1; padding: 8rem var(--pad) clamp(4rem, 8vw, 7rem); }
     .page-head { display: grid; grid-template-columns: minmax(8rem, .45fr) 1.55fr; gap: 2rem; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
@@ -194,8 +194,9 @@
       <a class="opt" href="index.html#profile">PROFILE</a>
       <a class="opt" href="index.html#work">WORK</a>
       <a class="opt" href="index.html#skills">SKILLS</a>
-      <a href="index.html#contact">CONTACT</a>
+      <a class="opt" href="index.html#contact">CONTACT</a>
       <a href="location.html">VISIT</a>
+      <a href="reservation.html" aria-current="page">RESERVE</a>
     </div>
   </nav>
 
