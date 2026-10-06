@@ -16,7 +16,7 @@ create table public.reservations (
   -- 같은 사람이 다른 시간에 신청하면 새 예약 번호가 생기고, 완전히 같은 신청은 한 번만 접수됩니다.
   constraint reservations_identity unique (name, email, visit_date, visit_time)
 );
--- 추후 작업: 서로 다른 신청자의 방문 희망 시간이 겹치지 않도록 관리해야 함 (아직 구현하지 않음).
+-- 방문 희망 시간이 겹치지 않게 하는 규칙은 supabase-slots.sql 에 있습니다. 이 파일 다음에 실행하세요.
 
 create or replace function public.is_admin() returns boolean
 language sql stable as $$

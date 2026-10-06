@@ -348,7 +348,9 @@
       const { data, error } = await db.from('reservations').update({ status }).eq('no', no).select('no, status');
       if (error || !data || !data.length) {
         group.querySelectorAll('button').forEach((b) => { b.disabled = false; });
-        setMsg(formatNo(no) + ' 상태를 바꾸지 못했습니다.' + (error ? ' (' + error.message + ')' : ''), true);
+        setMsg(error && error.code === '23505'
+          ? formatNo(no) + ' 상태를 바꾸지 못했습니다. 같은 날짜·시간에 이미 다른 예약이 있습니다.'
+          : formatNo(no) + ' 상태를 바꾸지 못했습니다.' + (error ? ' (' + error.message + ')' : ''), true);
         return;
       }
       const target = reservations.find((r) => r.no === no);

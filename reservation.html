@@ -223,7 +223,7 @@
           </div>
           <div class="cal-week" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
           <div class="cal-grid" id="cal-grid"></div>
-          <p class="cal-legend"><span><i></i>공휴일</span><span>주말·공휴일·지난 날짜는 선택할 수 없습니다.</span></p>
+          <p class="cal-legend"><span><i></i>공휴일</span><span>주말·공휴일·지난 날짜와 예약이 모두 찬 날짜는 선택할 수 없습니다.</span></p>
 
           <div class="field">
             <span class="field-label" id="picked-label">선택 날짜<span class="req" aria-hidden="true">*</span></span>
@@ -341,9 +341,30 @@
     const todayKey = toKey(new Date());
     const state = { date: '', view: new Date(new Date().getFullYear(), new Date().getMonth(), 1), emailTouched: false };
 
+    /* ───────── 이미 예약된 시간 ─────────
+       예약 목록(관리 페이지에 보이는 예약) 중 '취소'가 아닌 예약의 날짜·시간을 불러옵니다.
+       방문자에게는 날짜와 시간만 전달되고 이름·이메일 같은 개인정보는 전달되지 않습니다. */
+    const TIMES = [];
+    for (let t = TIME_START; t <= TIME_END; t += TIME_STEP) TIMES.push(pad(Math.floor(t / 60)) + ':' + pad(t % 60));
+    let booked = new Map();                       // '2026-10-12' → Set('14:30', …)
+    const isTaken = (date, time) => booked.has(date) && booked.get(date).has(time);
+    const isFull = (date) => booked.has(date) && TIMES.every((t) => booked.get(date).has(t));
+
+    async function loadSlots() {
+      if (!window.db) return;
+      const { data, error } = await window.db.rpc('booked_slots');
+      if (error || !Array.isArray(data)) return;  // 불러오지 못해도 저장소가 중복을 최종적으로 막습니다
+      const next = new Map();
+      data.forEach((row) => {
+        if (!next.has(row.visit_date)) next.set(row.visit_date, new Set());
+        next.get(row.visit_date).add(row.visit_time);
+      });
+      booked = next;
+    }
+
     function isSelectable(d) {
       const key = toKey(d), dow = d.getDay();
-      return dow !== 0 && dow !== 6 && !HOLIDAYS[key] && key >= todayKey && key <= LAST_BOOKABLE;
+      return dow !== 0 && dow !== 6 && !HOLIDAYS[key] && key >= todayKey && key <= LAST_BOOKABLE && !isFull(key);
     }
 
     /* ───────── 1. 캘린더 ───────── */
@@ -384,15 +405,39 @@
       out.textContent = formatDate(state.date);
       out.classList.remove('empty');
       renderCalendar();
+      renderTimes();
       update();
     });
     $('cal-prev').addEventListener('click', () => { state.view.setMonth(state.view.getMonth() - 1); renderCalendar(); });
     $('cal-next').addEventListener('click', () => { state.view.setMonth(state.view.getMonth() + 1); renderCalendar(); });
 
     /* ───────── 2. 희망 시간 ───────── */
-    for (let t = TIME_START; t <= TIME_END; t += TIME_STEP) {
-      const label = pad(Math.floor(t / 60)) + ':' + pad(t % 60);
-      $('time').add(new Option(label, label));
+    // 선택한 날짜에 이미 예약된 시간은 "(완료)"를 붙이고 고를 수 없게 합니다.
+    function renderTimes() {
+      const select = $('time'), current = select.value;
+      while (select.options.length > 1) select.remove(1);
+      TIMES.forEach((time) => {
+        const taken = !!state.date && isTaken(state.date, time);
+        const option = new Option(taken ? time + ' (완료)' : time, time);
+        option.disabled = taken;
+        select.add(option);
+      });
+      select.value = current && !(state.date && isTaken(state.date, current)) ? current : '';
+    }
+    renderTimes();
+
+    // 최신 예약 현황을 다시 불러와 캘린더와 시간 목록에 반영합니다.
+    async function refreshSlots() {
+      await loadSlots();
+      if (state.date && isFull(state.date)) {       // 고른 날짜가 그사이 모두 찼으면 선택 해제
+        state.date = '';
+        const out = $('picked-date');
+        out.textContent = '캘린더에서 날짜를 선택해 주세요';
+        out.classList.add('empty');
+      }
+      renderCalendar();
+      renderTimes();
+      update();
     }
 
     /* ───────── 3·5. 입력 검사와 버튼 활성화 ───────── */
@@ -430,10 +475,19 @@
     const dialog = $('review-dialog');
     let pending = null;
 
-    $('booking-form').addEventListener('submit', (e) => {
+    $('booking-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       state.emailTouched = true;
       update();
+      if (missing().length) return;
+      // 검토 팝업을 띄우기 직전에 한 번 더 확인: 그사이 다른 사람이 같은 시간을 예약했을 수 있음
+      const wanted = { date: state.date, time: $('time').value };
+      $('submit-btn').disabled = true;
+      await refreshSlots();
+      if (isTaken(wanted.date, wanted.time)) {
+        $('hint').textContent = formatDate(wanted.date) + ' ' + wanted.time + ' 은 방금 예약이 완료되었습니다. 다른 시간을 선택해 주세요.';
+        return;
+      }
       if (missing().length) return;
       pending = {
         date: state.date,
@@ -467,7 +521,7 @@
         });
         if (error) {
           const e = new Error(error.message);
-          e.duplicate = error.code === '23505';     // 같은 신청자가 같은 시간으로 이미 신청함
+          e.duplicate = error.code === '23505';     // 그 날짜·시간에 이미 예약이 있음 (저장소가 최종적으로 막음)
           throw e;
         }
         // 2) 저장에 성공하면 운영자에게 메일 알림. 메일이 실패해도 예약은 이미 저장된 상태입니다.
@@ -512,14 +566,14 @@
         const out = $('picked-date');
         out.textContent = '캘린더에서 날짜를 선택해 주세요';
         out.classList.add('empty');
-        renderCalendar();
         pending = null;
-        update();
+        await refreshSlots();    // 방금 예약한 시간이 바로 "(완료)"로 보이게 함
       } catch (e) {
         err.textContent = e.duplicate
-          ? '같은 이름·이메일로 같은 시간에 이미 접수된 예약이 있습니다. 다른 시간을 선택해 주세요.'
+          ? '이 시간은 이미 예약이 완료되었습니다. 수정하기를 눌러 다른 시간을 선택해 주세요.'
           : '전송하지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.';
         err.hidden = false;      // 입력 내용은 그대로 두고 다시 시도할 수 있게 함
+        if (e.duplicate) refreshSlots();
       } finally {
         confirmBtn.disabled = editBtn.disabled = false;
         confirmBtn.textContent = '예약 확정';
@@ -529,6 +583,7 @@
 
     renderCalendar();
     update();
+    refreshSlots();
   </script>
 </body>
 </html>
