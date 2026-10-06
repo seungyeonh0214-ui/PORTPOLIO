@@ -20,7 +20,7 @@ create table public.reservations (
 
 create or replace function public.is_admin() returns boolean
 language sql stable as $$
-  select coalesce((auth.jwt() ->> 'email') = 'mos2005@naver.com', false);
+  select coalesce((auth.jwt() ->> 'email') = 'seungyeonh0214@gmail.com', false);
 $$;
 
 alter table public.reservations enable row level security;
