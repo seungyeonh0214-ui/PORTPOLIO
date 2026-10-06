@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="한승연 포트폴리오 — 찾아오는 길, 현재 날씨, 방문 예약 안내" />
+  <title>찾아오는 길 — 한승연 Portfolio</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --ink: #111111;
+      --paper: #f5f4f0;
+      --signal: #ff3d20;
+      --line: rgba(17, 17, 17, .22);
+      --pad: clamp(1.25rem, 4vw, 4.5rem);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 1100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem var(--pad);
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 244, 240, .88);
+      backdrop-filter: blur(12px);
+    }
+    .brand { font-size: .78rem; font-weight: 800; letter-spacing: .09em; }
+    .nav-links { display: flex; gap: clamp(1rem, 3vw, 2.6rem); font-size: .76rem; font-weight: 700; }
+    .nav a { position: relative; }
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 100%; bottom: -.25rem;
+      height: 1px; background: var(--ink);
+      transition: right .25s ease;
+    }
+    .nav a:hover::after, .nav a:focus-visible::after, .nav a[aria-current="page"]::after { right: 0; }
+
+    .page-head {
+      padding: 8rem var(--pad) clamp(2.5rem, 5vw, 4rem);
+      display: grid;
+      grid-template-columns: minmax(8rem, .45fr) 1.55fr;
+      gap: 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { margin: .45rem 0 0; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .page-head h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 7vw, 6.4rem);
+      line-height: 1;
+      letter-spacing: -.055em;
+      font-weight: 650;
+    }
+    .page-head h1 .accent { color: var(--signal); }
+    .page-head .lead { margin: 1.4rem 0 0; max-width: 36rem; color: #555; font-size: clamp(1rem, 1.4vw, 1.15rem); }
+
+    .visit { padding: clamp(2.5rem, 6vw, 5rem) var(--pad) clamp(4rem, 8vw, 7rem); }
+    .visit-grid {
+      display: grid;
+      grid-template-columns: 1.45fr .9fr;
+      border: 1px solid var(--ink);
+    }
+    #map { min-height: clamp(22rem, 46vw, 34rem); background: #d9d6cf; z-index: 1; }
+    .map-fallback { display: grid; place-items: center; height: 100%; padding: 2rem; text-align: center; color: #555; font-size: .9rem; }
+
+    .info { display: flex; flex-direction: column; border-left: 1px solid var(--ink); }
+    .info-block { padding: clamp(1.3rem, 2.6vw, 2rem); border-bottom: 1px solid var(--line); }
+    .info-block:last-child { border-bottom: 0; }
+    .label { display: block; margin-bottom: 1rem; color: var(--signal); font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .address { margin: 0; font-size: clamp(1.3rem, 2.2vw, 1.9rem); font-weight: 700; line-height: 1.25; letter-spacing: -.035em; }
+    .address-sub { margin: .7rem 0 0; color: #555; font-size: .92rem; }
+    .room { display: inline-block; margin-top: 1rem; padding: .3rem .7rem; border: 1px solid var(--ink); border-radius: 99px; font-size: .78rem; font-weight: 700; }
+
+    .weather { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .metric { padding-right: 1rem; }
+    .metric + .metric { padding-left: 1.2rem; padding-right: 0; border-left: 1px solid var(--line); }
+    .metric dt { color: #555; font-size: .76rem; font-weight: 700; }
+    .metric dd { margin: .2rem 0 0; font-size: clamp(2.4rem, 4.4vw, 3.6rem); font-weight: 500; letter-spacing: -.06em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .metric dd small { margin-left: .15rem; font-size: .4em; font-weight: 700; letter-spacing: 0; }
+    .weather-wrap { margin: 0; }
+    .weather-note { margin: 1rem 0 0; color: #555; font-size: .8rem; min-height: 1.3em; }
+
+    .sources { margin: 0; padding: 0; list-style: none; color: #666; font-size: .7rem; line-height: 1.7; }
+    .sources a { text-decoration: underline; text-underline-offset: 2px; }
+    .sources a:hover, .sources a:focus-visible { color: var(--ink); }
+
+    .cta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; margin-top: clamp(2rem, 4vw, 3rem); padding-top: clamp(1.5rem, 3vw, 2rem); border-top: 1px solid var(--ink); }
+    .cta-row p { margin: 0; max-width: 30rem; color: #555; }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.4rem;
+      padding: 1.15rem 1.6rem;
+      background: var(--signal);
+      color: var(--ink);
+      border: 1px solid var(--ink);
+      font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      transition: background .2s ease, color .2s ease;
+    }
+    .cta:hover, .cta:focus-visible { background: var(--ink); color: var(--paper); }
+    .cta .arrow { transition: transform .2s ease; }
+    .cta:hover .arrow, .cta:focus-visible .arrow { transform: translateX(.35rem); }
+    a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+    .foot { display: flex; justify-content: space-between; gap: 2rem; padding: 1.4rem var(--pad); border-top: 1px solid var(--line); font-size: .72rem; font-weight: 700; }
+
+    .skip { position: fixed; left: 1rem; top: -4rem; z-index: 1200; padding: .7rem 1rem; background: #fff; }
+    .skip:focus { top: 1rem; }
+
+    .leaflet-container { font-family: inherit; }
+    .pin { width: 22px; height: 22px; border-radius: 50%; background: var(--signal); border: 3px solid var(--ink); box-shadow: 0 0 0 6px rgba(255, 61, 32, .25); }
+
+    @media (max-width: 860px) {
+      .page-head { grid-template-columns: 1fr; gap: 1.2rem; padding-top: 6.5rem; }
+      .visit-grid { grid-template-columns: 1fr; }
+      .info { border-left: 0; border-top: 1px solid var(--ink); }
+      .cta { width: 100%; justify-content: space-between; }
+    }
+    @media (max-width: 560px) {
+      .nav-links a.opt { display: none; }
+      .foot span:nth-child(2) { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cta, .cta .arrow, .nav a::after { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">본문으로 바로가기</a>
+  <nav class="nav" aria-label="주요 메뉴">
+    <a class="brand" href="index.html">HAN SEUNGYEON / PORTFOLIO</a>
+    <div class="nav-links">
+      <a class="opt" href="index.html#profile">PROFILE</a>
+      <a class="opt" href="index.html#work">WORK</a>
+      <a class="opt" href="index.html#skills">SKILLS</a>
+      <a href="index.html#contact">CONTACT</a>
+      <a href="location.html" aria-current="page">VISIT</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <header class="page-head">
+      <p class="eyebrow">Visit / Location</p>
+      <div>
+        <h1>찾아오는 길<span class="accent">.</span></h1>
+        <p class="lead">포트폴리오를 보고 직접 만나 이야기하고 싶으시다면 아래 위치로 찾아오실 수 있습니다.</p>
+      </div>
+    </header>
+
+    <section class="visit" aria-label="위치와 날씨">
+      <div class="visit-grid">
+        <div id="map" role="img" aria-label="상명대학교 천안캠퍼스 위치 지도"></div>
+
+        <div class="info">
+          <div class="info-block">
+            <span class="label">Address</span>
+            <p class="address">상명대학교 천안캠퍼스</p>
+            <p class="address-sub">충청남도 천안시 동남구 상명대길 31</p>
+            <span class="room">C404a</span>
+          </div>
+
+          <div class="info-block">
+            <span class="label">Weather now</span>
+            <dl class="weather weather-wrap">
+              <div class="metric">
+                <dt>온도</dt>
+                <dd><span id="temp">–</span><small>°C</small></dd>
+              </div>
+              <div class="metric">
+                <dt>습도</dt>
+                <dd><span id="humid">–</span><small>%</small></dd>
+              </div>
+            </dl>
+            <p class="weather-note" id="weather-note" aria-live="polite">날씨 정보를 불러오는 중입니다.</p>
+          </div>
+
+          <div class="info-block">
+            <ul class="sources">
+              <li>지도 출처: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a></li>
+              <li>날씨 출처: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (주소 좌표 기준 현재 값)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <p>방문 전에 일정을 먼저 예약해 주세요.</p>
+        <a class="cta" href="reservation.html">방문 예약하기 <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot"><span>HAN SEUNGYEON / PORTFOLIO</span><span>CHEONAN · SANGMYUNG UNIV.</span><span>© 2026</span></footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // 상명대학교 천안캠퍼스 (상명대길 31) 좌표 — OpenStreetMap 기준
+    const PLACE = { lat: 36.8330, lon: 127.1790 };
+
+    // 1. 지도
+    const mapEl = document.getElementById('map');
+    if (window.L) {
+      const map = L.map(mapEl, { scrollWheelZoom: false }).setView([PLACE.lat, PLACE.lon], 16);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      const pin = L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
+      L.marker([PLACE.lat, PLACE.lon], { icon: pin, title: '상명대학교 천안캠퍼스 C404a' })
+        .addTo(map)
+        .bindPopup('<b>상명대학교 천안캠퍼스</b><br>상명대길 31 · C404a');
+    } else {
+      mapEl.innerHTML = '<div class="map-fallback">지도를 불러오지 못했습니다. 주소: 충청남도 천안시 동남구 상명대길 31</div>';
+    }
+
+    // 2. 날씨 (온도·습도)
+    const note = document.getElementById('weather-note');
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + PLACE.lat + '&longitude=' + PLACE.lon +
+      '&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FSeoul';
+    fetch(url)
+      .then((res) => { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then((data) => {
+        const cur = data.current;
+        document.getElementById('temp').textContent = Number(cur.temperature_2m).toFixed(1);
+        document.getElementById('humid').textContent = Math.round(cur.relative_humidity_2m);
+        note.textContent = cur.time.replace('T', ' ') + ' 기준 (한국 시간)';
+      })
+      .catch(() => {
+        note.textContent = '날씨 정보를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';
+      });
+  </script>
+</body>
+</html>
