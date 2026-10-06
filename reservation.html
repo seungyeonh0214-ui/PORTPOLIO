@@ -298,8 +298,11 @@
     </div>
   </dialog>
 
-  <footer class="foot"><span>HAN SEUNGYEON / PORTFOLIO</span><span>© 2026</span></footer>
+  <footer class="foot"><span>HAN SEUNGYEON / PORTFOLIO</span><a href="admin.html">ADMIN</a><span>© 2026</span></footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="site-auth.js"></script>
   <script>
     /* ───────── 설정 ───────── */
     // 평일에 걸리는 공휴일·대체공휴일 (주말은 어차피 선택 불가). 해가 바뀌면 여기에 추가하세요.
@@ -452,6 +455,30 @@
     // 예약 내용을 Formspree로 보냅니다. Formspree가 운영자 이메일로 전달합니다.
     // 받는 이메일 주소는 코드가 아니라 Formspree 대시보드의 폼 설정에서 정합니다.
     async function sendReservation(data) {
+      // 1) 예약 목록(Supabase)에 저장 — 관리자 페이지의 "예약하기 관리" 표에 쌓입니다.
+      //    처리 상태는 저장소에서 자동으로 '접수'가 됩니다.
+      if (window.db) {
+        const { error } = await window.db.from('reservations').insert({
+          name: data.name,
+          email: data.email,
+          visit_date: data.date,
+          visit_time: data.time,
+          purpose: data.purpose
+        });
+        if (error) {
+          const e = new Error(error.message);
+          e.duplicate = error.code === '23505';     // 같은 신청자가 같은 시간으로 이미 신청함
+          throw e;
+        }
+        // 2) 저장에 성공하면 운영자에게 메일 알림. 메일이 실패해도 예약은 이미 저장된 상태입니다.
+        try { await notifyByEmail(data); } catch (mailError) { /* 목록에는 저장됨 */ }
+        return;
+      }
+      // 저장소가 연결되기 전에는 메일 전달만 합니다.
+      await notifyByEmail(data);
+    }
+
+    async function notifyByEmail(data) {
       const res = await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -489,6 +516,9 @@
         pending = null;
         update();
       } catch (e) {
+        err.textContent = e.duplicate
+          ? '같은 이름·이메일로 같은 시간에 이미 접수된 예약이 있습니다. 다른 시간을 선택해 주세요.'
+          : '전송하지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.';
         err.hidden = false;      // 입력 내용은 그대로 두고 다시 시도할 수 있게 함
       } finally {
         confirmBtn.disabled = editBtn.disabled = false;

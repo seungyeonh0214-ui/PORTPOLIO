@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>예약하기 관리 — 한승연 Portfolio</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --paper: #f5f4f0;
+      --signal: #ff3d20;
+      --error: #d32012;
+      --muted: #555555;
+      --line: rgba(17, 17, 17, .22);
+      --pad: clamp(1.25rem, 4vw, 4.5rem);
+      /* 처리 상태 색 */
+      --st-received: #e4e1da;
+      --st-confirmed: #cfe8c9;
+      --st-change: #ffe2a8;
+      --st-cancel: #f6c9c2;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; }
+
+    .nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem var(--pad);
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 244, 240, .88);
+      backdrop-filter: blur(12px);
+    }
+    .brand { font-size: .78rem; font-weight: 800; letter-spacing: .09em; }
+    .nav-links { display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.6rem); font-size: .76rem; font-weight: 700; }
+    .nav a { position: relative; }
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 100%; bottom: -.25rem;
+      height: 1px; background: var(--ink);
+      transition: right .25s ease;
+    }
+    .nav a:hover::after, .nav a:focus-visible::after { right: 0; }
+
+    main { flex: 1; padding: 8rem var(--pad) clamp(4rem, 8vw, 7rem); }
+    .eyebrow { margin: 0 0 1.2rem; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.2rem, 5.5vw, 4.6rem); line-height: 1; letter-spacing: -.055em; font-weight: 650; }
+    h1 .accent { color: var(--signal); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: .8rem 1.3rem;
+      border: 1px solid var(--ink);
+      background: var(--signal); color: var(--ink);
+      font-weight: 800; cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+    .btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+    .btn:disabled { background: #d9d6cf; color: #8f8b83; border-color: #b9b5ad; cursor: not-allowed; }
+    .btn.ghost { background: transparent; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+    /* 안내 · 로그인 */
+    .panel { max-width: 28rem; margin-top: clamp(2rem, 5vw, 3.5rem); padding: clamp(1.3rem, 3vw, 2rem); border: 1px solid var(--ink); }
+    .panel p { margin: 0 0 1rem; color: var(--muted); }
+    .field { display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1.1rem; }
+    .field label { font-size: .82rem; font-weight: 700; }
+    .control { width: 100%; padding: .85rem .9rem; border: 1px solid var(--ink); border-radius: 0; background: #fff; font-size: 1rem; }
+    .error-msg { margin: 0 0 1rem; color: var(--error); font-size: .85rem; font-weight: 700; }
+
+    /* 예약 목록 */
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: clamp(2rem, 5vw, 3.5rem); }
+    .summary { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; font-size: .82rem; font-weight: 700; }
+    .summary li { padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 99px; font-variant-numeric: tabular-nums; }
+    .toolbar-actions { display: flex; align-items: center; gap: .8rem; }
+    .who { color: var(--muted); font-size: .8rem; }
+    .toolbar .btn { padding: .55rem 1rem; font-size: .85rem; }
+
+    .table-wrap { margin-top: 1.2rem; border: 1px solid var(--ink); overflow-x: auto; }
+    table { width: 100%; min-width: 62rem; border-collapse: collapse; font-size: .92rem; }
+    th, td { padding: .9rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    thead th { background: var(--ink); color: var(--paper); font-size: .76rem; letter-spacing: .04em; white-space: nowrap; border-bottom: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .no { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .who-cell b { display: block; }
+    .who-cell a { color: var(--muted); font-size: .85rem; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+    .when { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .when b { display: block; }
+    .purpose { max-width: 22rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .pill { display: inline-block; padding: .25rem .7rem; border: 1px solid var(--ink); border-radius: 99px; font-size: .8rem; font-weight: 800; white-space: nowrap; }
+    .pill[data-status="접수"] { background: var(--st-received); }
+    .pill[data-status="확정"] { background: var(--st-confirmed); }
+    .pill[data-status="변경 요청"] { background: var(--st-change); }
+    .pill[data-status="취소"] { background: var(--st-cancel); }
+    .manage { display: flex; flex-wrap: wrap; gap: .35rem; min-width: 15rem; }
+    .manage button { padding: .4rem .7rem; border: 1px solid var(--ink); background: transparent; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .manage button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+    .manage button[aria-pressed="true"] { background: var(--ink); color: var(--paper); cursor: default; }
+    .manage button:disabled:not([aria-pressed="true"]) { opacity: .4; cursor: wait; }
+    .empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
+    .list-msg { margin: 1rem 0 0; min-height: 1.4em; font-size: .85rem; color: var(--muted); }
+    .list-msg.bad { color: var(--error); font-weight: 700; }
+
+    .foot { display: flex; justify-content: space-between; gap: 2rem; padding: 1.4rem var(--pad); border-top: 1px solid var(--line); font-size: .72rem; font-weight: 700; }
+
+    @media (max-width: 560px) {
+      main { padding-top: 6.5rem; }
+      .nav-links a.opt { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="주요 메뉴">
+    <a class="brand" href="index.html">HAN SEUNGYEON / PORTFOLIO</a>
+    <div class="nav-links">
+      <a class="opt" href="index.html#profile">PROFILE</a>
+      <a class="opt" href="index.html#work">WORK</a>
+      <a class="opt" href="index.html#skills">SKILLS</a>
+      <a class="opt" href="index.html#contact">CONTACT</a>
+      <a href="location.html">VISIT</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <p class="eyebrow">Admin / Reservations</p>
+    <h1>예약하기 관리<span class="accent">.</span></h1>
+
+    <!-- 저장소가 아직 연결되지 않았을 때 -->
+    <section class="panel" id="view-setup" hidden>
+      <p><b>예약 저장소가 아직 연결되지 않았습니다.</b></p>
+      <p>supabase-config.js 파일에 Supabase 프로젝트 주소와 anon 키를 넣으면 이 화면이 로그인 화면으로 바뀝니다.</p>
+    </section>
+
+    <!-- 로그인 전 -->
+    <section class="panel" id="view-login" hidden>
+      <p>관리자 계정으로 로그인해 주세요.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">이메일</label>
+          <input class="control" id="login-email" type="email" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="login-password">비밀번호</label>
+          <input class="control" id="login-password" type="password" autocomplete="current-password" required />
+        </div>
+        <p class="error-msg" id="login-error" role="alert" hidden></p>
+        <button class="btn" type="submit" id="login-btn">로그인</button>
+      </form>
+    </section>
+
+    <!-- 로그인 후: 예약 목록 -->
+    <section id="view-list" hidden>
+      <div class="toolbar">
+        <ul class="summary" id="summary" aria-label="처리 상태별 건수"></ul>
+        <div class="toolbar-actions">
+          <span class="who" id="who"></span>
+          <button class="btn ghost" type="button" id="refresh-btn">새로고침</button>
+          <button class="btn ghost" type="button" id="logout-btn">로그아웃</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">예약 번호</th>
+              <th scope="col">신청자/이메일</th>
+              <th scope="col">방문 희망 시간</th>
+              <th scope="col">방문 목적</th>
+              <th scope="col">처리 상태</th>
+              <th scope="col">관리</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="list-msg" id="list-msg" role="status"></p>
+    </section>
+  </main>
+
+  <footer class="foot"><span>HAN SEUNGYEON / PORTFOLIO</span><span>© 2026</span></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="site-auth.js"></script>
+  <script>
+    const STATUSES = ['접수', '확정', '변경 요청', '취소'];
+    const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    const $ = (id) => document.getElementById(id);
+    const db = window.db;
+    let reservations = [];
+
+    const formatNo = (no) => 'R-' + String(no).padStart(4, '0');
+    function formatDate(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return y + '년 ' + m + '월 ' + d + '일 (' + WEEKDAYS[date.getDay()] + ')';
+    }
+
+    function show(view) {
+      ['view-setup', 'view-login', 'view-list'].forEach((id) => { $(id).hidden = id !== view; });
+    }
+    function setMsg(text, bad) {
+      $('list-msg').textContent = text || '';
+      $('list-msg').classList.toggle('bad', !!bad);
+    }
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    /* ───────── 표 그리기 ───────── */
+    function render() {
+      const summary = $('summary');
+      summary.textContent = '';
+      summary.appendChild(el('li', '', '전체 ' + reservations.length));
+      STATUSES.forEach((s) => summary.appendChild(el('li', '', s + ' ' + reservations.filter((r) => r.status === s).length)));
+
+      const body = $('rows');
+      body.textContent = '';
+      if (!reservations.length) {
+        const tr = el('tr'), td = el('td', 'empty', '아직 접수된 예약이 없습니다.');
+        td.colSpan = 6;
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+      }
+      reservations.forEach((r) => {
+        const tr = el('tr');
+
+        tr.appendChild(el('td', 'no', formatNo(r.no)));
+
+        const who = el('td', 'who-cell');
+        who.appendChild(el('b', '', r.name));
+        const mail = el('a', '', r.email);
+        mail.href = 'mailto:' + r.email;
+        who.appendChild(mail);
+        tr.appendChild(who);
+
+        const when = el('td', 'when');
+        when.appendChild(el('b', '', formatDate(r.visit_date)));
+        when.appendChild(document.createTextNode(r.visit_time));
+        tr.appendChild(when);
+
+        tr.appendChild(el('td', 'purpose', r.purpose));
+
+        const st = el('td');
+        const pill = el('span', 'pill', r.status);
+        pill.dataset.status = r.status;
+        st.appendChild(pill);
+        tr.appendChild(st);
+
+        const manage = el('td');
+        const group = el('div', 'manage');
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', formatNo(r.no) + ' 처리 상태 변경');
+        STATUSES.forEach((s) => {
+          const btn = el('button', '', s);
+          btn.type = 'button';
+          btn.dataset.no = r.no;
+          btn.dataset.status = s;
+          btn.setAttribute('aria-pressed', String(r.status === s));
+          group.appendChild(btn);
+        });
+        manage.appendChild(group);
+        tr.appendChild(manage);
+
+        body.appendChild(tr);
+      });
+    }
+
+    /* ───────── 목록 불러오기 ───────── */
+    async function load() {
+      setMsg('예약 목록을 불러오는 중입니다.');
+      const { data, error } = await db.from('reservations')
+        .select('no, name, email, visit_date, visit_time, purpose, status, created_at')
+        .order('visit_date', { ascending: true })
+        .order('visit_time', { ascending: true });
+      if (error) { setMsg('예약 목록을 불러오지 못했습니다. (' + error.message + ')', true); return; }
+      reservations = data;
+      render();
+      setMsg(data.length ? '' : '이 계정이 관리자 계정이 아니면 목록이 비어 보입니다.');
+    }
+
+    /* ───────── 관리: 상태 버튼 ───────── */
+    $('rows').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.manage button');
+      if (!btn || btn.getAttribute('aria-pressed') === 'true') return;
+      const no = Number(btn.dataset.no), status = btn.dataset.status;
+      const group = btn.parentElement;
+      group.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      const { data, error } = await db.from('reservations').update({ status }).eq('no', no).select('no, status');
+      if (error || !data || !data.length) {
+        group.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+        setMsg(formatNo(no) + ' 상태를 바꾸지 못했습니다.' + (error ? ' (' + error.message + ')' : ''), true);
+        return;
+      }
+      const target = reservations.find((r) => r.no === no);
+      if (target) target.status = status;
+      render();
+      setMsg(formatNo(no) + ' 예약을 "' + status + '" 상태로 바꿨습니다.');
+    });
+
+    /* ───────── 로그인 · 로그아웃 ───────── */
+    function applySession(session) {
+      if (session) {
+        $('who').textContent = session.user.email;
+        show('view-list');
+        load();
+      } else {
+        reservations = [];
+        show('view-login');
+      }
+    }
+
+    if (!db) {
+      show('view-setup');
+    } else {
+      $('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = $('login-error'), btn = $('login-btn');
+        err.hidden = true;
+        btn.disabled = true;
+        const { data, error } = await db.auth.signInWithPassword({
+          email: $('login-email').value.trim(),
+          password: $('login-password').value
+        });
+        btn.disabled = false;
+        if (error) {
+          err.textContent = '로그인하지 못했습니다. 이메일과 비밀번호를 확인해 주세요.';
+          err.hidden = false;
+          return;
+        }
+        $('login-password').value = '';
+        applySession(data.session);
+      });
+      $('logout-btn').addEventListener('click', async () => { await db.auth.signOut(); applySession(null); });
+      $('refresh-btn').addEventListener('click', load);
+      db.auth.getSession().then(({ data }) => applySession(data.session));
+    }
+  </script>
+</body>
+</html>
