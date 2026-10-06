@@ -247,6 +247,7 @@
       <a href="#work">WORK</a>
       <a href="#skills">SKILLS</a>
       <a href="#contact">CONTACT</a>
+      <a href="location.html">VISIT</a>
     </div>
   </nav>
 
@@ -374,10 +375,13 @@
     <section class="contact" id="contact">
       <p>생태복원·조경·도시계획 분야에서 조사와 설계, 시각화 역량을 꾸준히 확장하고 있습니다.</p>
       <h2>let's<br />talk.</h2>
-      <div class="contact-bottom"><span>HAN SEUNGYEON / PORTFOLIO</span><span>SEOUL · GYEONGGI</span><span>© 2026</span></div>
+      <div class="contact-bottom"><span>HAN SEUNGYEON / PORTFOLIO</span><span>SEOUL · GYEONGGI</span><span><a href="admin.html">ADMIN</a> · © 2026</span></div>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="site-auth.js"></script>
   <script>
     const items = document.querySelectorAll('.reveal');
     if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
